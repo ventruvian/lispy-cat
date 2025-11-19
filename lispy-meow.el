@@ -38,6 +38,11 @@ The resulting cursors may be unpredictable."
   :type 'boolean
   :group 'lispy-meow)
 
+(defcustom lispy-meow-preserve-selection-on-entry-p t
+  "If non-nil the selection will stay active when entering LISPY."
+  :type 'boolean
+  :group 'lispy-meow)
+
 
 ;;; Activation Mode
 
@@ -118,6 +123,8 @@ I.e. (lispy-meow-cmd-name \\='meow-insert) => lispy-meow-insert"
         (message "Quit temporary normal mode")
         (meow--switch-state 'motion))
     (meow--direction-backward)
+    (unless lispy-meow-preserve-selection-on-entry-p
+      (meow--cancel-selection))
     (meow--switch-state 'lispy)
     (when meow-select-on-insert
       (setq-local meow--insert-pos (point)))))
@@ -134,7 +141,9 @@ I.e. (lispy-meow-cmd-name \\='meow-insert) => lispy-meow-insert"
         (when (and meow-use-cursor-position-hack
                    (< (point) (point-max)))
           (forward-char 1))
-      (meow--direction-forward))
+      (meow--direction-forward)
+      (unless lispy-meow-preserve-selection-on-entry-p
+        (meow--cancel-selection)))
     (meow--switch-state 'lispy)
     (when meow-select-on-append
       (setq-local meow--insert-pos (point)))))
@@ -193,7 +202,7 @@ This command supports `meow-selection-command-fallback'."
 
 ;;; Lispy State
 
-;; The name is no accident, it matches `meow-define-state'.
+;; The name is no accident, it it created by `meow-define-state'.
 (defvar-keymap meow-lispy-state-keymap
   :doc "Keymap for Meow's Lispy state. This is custom code."
   :parent meow-insert-state-keymap)
