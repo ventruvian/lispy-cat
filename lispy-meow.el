@@ -48,7 +48,7 @@ I.e. (lispy-meow-cmd-name \\='meow-insert) => lispy-meow-insert"
 
 (defun lispy-meow-activate-p ()
   "Whether or not LISPY should replace INSERT."
-  (and (bound-and-true-p lispy-meow-mode) ;; test shouldn't be necessary as avices are removed
+  (and (bound-and-true-p lispy-meow-mode)
        (or lispy-meow-beacon-prefer-lispy-p
            (not (memq this-command '(meow-beacon-insert
                                      meow-beacon-append
@@ -89,7 +89,6 @@ I.e. (lispy-meow-cmd-name \\='meow-insert) => lispy-meow-insert"
 (define-minor-mode lispy-meow-mode
   "Integrate `lispy-mode' into meow."
   :group 'lispy-meow
-  :global t
   :init-value nil
   (if lispy-meow-mode
       (progn (advice-add 'meow-insert :around lispy-meow--insert-a)
