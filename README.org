@@ -114,6 +114,12 @@ The following user options control the behavior of ~lispy-cat~:
 | ~lispy-cat-beacon-prefer-lispy-p~         | ~nil~     | If non-nil, enter ~LISPY~ when in ~BEACON~ state (cursor behaviour unpredictable) |
 | ~lispy-cat-preserve-selection-on-entry-p~ | ~t~       | If non-nil, the selection remains active when entering ~LISPY~ state            |
 
+** Lispy Keybindings
+
+Be aware that writing this package was the easy part. The hard part is mapping
+the mental models of ~meow~ and ~lispy~ with some consistency, which this package
+(currently) doesn't attempt to do for you.
+
 -----
 * Requirements
 
