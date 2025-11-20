@@ -1,4 +1,4 @@
-;;; lispy-meow.el --- A lispy layer for meow -*- lexical-binding: t; -*-
+;;; lispy-cat.el --- A lispy layer for meow -*- lexical-binding: t; -*-
 ;;
 ;; Copyright (C) 2025 Vince Vice
 ;;
@@ -8,7 +8,7 @@
 ;; Modified: November 18, 2025
 ;; Version: 0.0.1
 ;; Keywords: abbrev bib c calendar comm convenience data docs emulations extensions faces files frames games hardware help hypermedia i18n internal languages lisp local maint mail matching mouse multimedia news outlines processes terminals tex text tools unix vc wp
-;; Homepage: https://github.com/fatal: not a git repository: /Users/indiana/.config/doom/lisp/../../.git/modules/engrave-faces/lispy-meow
+;; Homepage: https://github.com/fatal: not a git repository: /Users/indiana/.config/doom/lisp/../../.git/modules/engrave-faces/lispy-cat
 ;; Package-Requires: ((emacs "29.1"))
 ;;
 ;; This file is not part of GNU Emacs.
@@ -22,90 +22,90 @@
 (require 'meow)
 (require 'lispy)
 
-(defgroup lispy-meow nil
+(defgroup lispy-cat nil
   "Integrate lispy and meow."
   :group 'external)
 
-(defcustom lispy-meow-open-cmds-prefer-lispy-p t
+(defcustom lispy-cat-open-cmds-prefer-lispy-p t
   "If non-nil enter LISPY in newline commands instead of INSERT.
 Affected are `meow-open-above' and `meow-open-below'."
   :type 'boolean
-  :group 'lispy-meow)
+  :group 'lispy-cat)
 
-(defcustom lispy-meow-beacon-prefer-lispy-p nil
+(defcustom lispy-cat-beacon-prefer-lispy-p nil
   "If non-nil enter LISPY from BEACON instead of INSERT.
 The resulting cursors may be unpredictable."
   :type 'boolean
-  :group 'lispy-meow)
+  :group 'lispy-cat)
 
-(defcustom lispy-meow-preserve-selection-on-entry-p t
+(defcustom lispy-cat-preserve-selection-on-entry-p t
   "If non-nil the selection will stay active when entering LISPY."
   :type 'boolean
-  :group 'lispy-meow)
+  :group 'lispy-cat)
 
 
 ;;; Activation Mode
 
-(defsubst lispy-meow-cmd-name (meow-insert-fn)
+(defsubst lispy-cat-cmd-name (meow-insert-fn)
   "Return the name for the LISPY pendant to MEOW-INSERT-FN as a string.
-I.e. (lispy-meow-cmd-name \\='meow-insert) => lispy-meow-insert"
+I.e. (lispy-cat-cmd-name \\='meow-insert) => lispy-cat-insert"
   (concat "lispy-" (symbol-name meow-insert-fn)))
 
-(defun lispy-meow-activate-p ()
+(defun lispy-cat-activate-p ()
   "Whether or not LISPY should replace INSERT."
-  (and (bound-and-true-p lispy-meow-mode)
-       (or lispy-meow-beacon-prefer-lispy-p
+  (and (bound-and-true-p lispy-cat-mode)
+       (or lispy-cat-beacon-prefer-lispy-p
            (not (memq this-command '(meow-beacon-insert
                                      meow-beacon-append
                                      meow-beacon-change))))
-       (or lispy-meow-open-cmds-prefer-lispy-p
+       (or lispy-cat-open-cmds-prefer-lispy-p
            (not (memq this-command '(meow-open-above
                                      meow-open-below))))))
 
-(defmacro lispy-meow-make-advice-maybe-lispy (meow-insert-fn)
+(defmacro lispy-cat-make-advice-maybe-lispy (meow-insert-fn)
   "Return advice function to advice MEOW-INSERT-FN with."
   (let ((adv-fn (intern (concat (symbol-name meow-insert-fn) "-maybe-lispy-a"))))
     `(defun ,adv-fn (insert-fn &rest r)
        ,(concat "Advice around `" (symbol-name meow-insert-fn) "'.\n"
                 "Replace call to `" (symbol-name meow-insert-fn)
-                "' with `" (lispy-meow-cmd-name meow-insert-fn) "'")
-       (if (lispy-meow-activate-p)
+                "' with `" (lispy-cat-cmd-name meow-insert-fn) "'")
+       (if (lispy-cat-activate-p)
            ,(cond ((eq meow-insert-fn 'meow-insert)
-                   '(apply #'lispy-meow-insert r))
+                   '(apply #'lispy-cat-insert r))
                   ((eq meow-insert-fn 'meow-append)
-                   '(apply #'lispy-meow-append r))
+                   '(apply #'lispy-cat-append r))
                   ((eq meow-insert-fn 'meow-change)
-                   '(apply #'lispy-meow-change r))
+                   '(apply #'lispy-cat-change r))
                   ((eq meow-insert-fn 'meow-open-above)
-                   '(apply #'lispy-meow-open-above r))
+                   '(apply #'lispy-cat-open-above r))
                   ((eq meow-insert-fn 'meow-open-below)
-                   '(apply #'lispy-meow-open-below r))
+                   '(apply #'lispy-cat-open-below r))
                   (t (apply meow-insert-fn r)))
          (apply insert-fn r)))))
 
 ;; Store the symbols so we can easily remove the advice in the teardown
-(defvar lispy-meow--insert-a (lispy-meow-make-advice-maybe-lispy meow-insert))
-(defvar lispy-meow--append-a (lispy-meow-make-advice-maybe-lispy meow-append))
-(defvar lispy-meow--change-a (lispy-meow-make-advice-maybe-lispy meow-change))
-(defvar lispy-meow--open-above-a (lispy-meow-make-advice-maybe-lispy meow-open-above))
-(defvar lispy-meow--open-below-a (lispy-meow-make-advice-maybe-lispy meow-open-below))
+(defvar lispy-cat--insert-a (lispy-cat-make-advice-maybe-lispy meow-insert))
+(defvar lispy-cat--append-a (lispy-cat-make-advice-maybe-lispy meow-append))
+(defvar lispy-cat--change-a (lispy-cat-make-advice-maybe-lispy meow-change))
+(defvar lispy-cat--open-above-a (lispy-cat-make-advice-maybe-lispy meow-open-above))
+(defvar lispy-cat--open-below-a (lispy-cat-make-advice-maybe-lispy meow-open-below))
 
 ;;;###autoload
-(define-minor-mode lispy-meow-mode
+(define-minor-mode lispy-cat-mode
   "Integrate `lispy-mode' into meow."
-  :group 'lispy-meow
+  :group 'lispy-cat
   :init-value nil
-  (if lispy-meow-mode
-      (progn (advice-add 'meow-insert :around lispy-meow--insert-a)
-             (advice-add 'meow-append :around lispy-meow--append-a)
-             (advice-add 'meow-change :around lispy-meow--change-a)
-             (advice-add 'meow-open-above :around lispy-meow--open-above-a)
-             (advice-add 'meow-open-below :around lispy-meow--open-below-a))
-    (advice-remove 'meow-insert lispy-meow--insert-a)
-    (advice-remove 'meow-append lispy-meow--append-a)
-    (advice-remove 'meow-change lispy-meow--change-a)
-    (advice-remove 'meow-open-above lispy-meow--open-above-a)
-    (advice-remove 'meow-open-below lispy-meow--open-below-a)))
+  (if lispy-cat-mode
+      (progn (advice-add 'meow-insert :around lispy-cat--insert-a)
+             (advice-add 'meow-append :around lispy-cat--append-a)
+             (advice-add 'meow-change :around lispy-cat--change-a)
+             (advice-add 'meow-open-above :around lispy-cat--open-above-a)
+             (advice-add 'meow-open-below :around lispy-cat--open-below-a))
+    (advice-remove 'meow-insert lispy-cat--insert-a)
+    (advice-remove 'meow-append lispy-cat--append-a)
+    (advice-remove 'meow-change lispy-cat--change-a)
+    (advice-remove 'meow-open-above lispy-cat--open-above-a)
+    (advice-remove 'meow-open-below lispy-cat--open-below-a)))
 
 
 ;;; Entrypoints
@@ -115,7 +115,7 @@ I.e. (lispy-meow-cmd-name \\='meow-insert) => lispy-meow-insert"
 ;; - Don't cancel selection
 
 ;;;###autoload
-(defun lispy-meow-insert ()
+(defun lispy-cat-insert ()
   "Move to the start of selection, switch to LISPY state."
   (interactive)
   (if meow--temp-normal
@@ -123,14 +123,14 @@ I.e. (lispy-meow-cmd-name \\='meow-insert) => lispy-meow-insert"
         (message "Quit temporary normal mode")
         (meow--switch-state 'motion))
     (meow--direction-backward)
-    (unless lispy-meow-preserve-selection-on-entry-p
+    (unless lispy-cat-preserve-selection-on-entry-p
       (meow--cancel-selection))
     (meow--switch-state 'lispy)
     (when meow-select-on-insert
       (setq-local meow--insert-pos (point)))))
 
 ;;;###autoload
-(defun lispy-meow-append ()
+(defun lispy-cat-append ()
   "Move to the start of selection, switch to LISPY state."
   (interactive)
   (if meow--temp-normal
@@ -142,27 +142,27 @@ I.e. (lispy-meow-cmd-name \\='meow-insert) => lispy-meow-insert"
                    (< (point) (point-max)))
           (forward-char 1))
       (meow--direction-forward)
-      (unless lispy-meow-preserve-selection-on-entry-p
+      (unless lispy-cat-preserve-selection-on-entry-p
         (meow--cancel-selection)))
     (meow--switch-state 'lispy)
     (when meow-select-on-append
       (setq-local meow--insert-pos (point)))))
 
 ;;;###autoload
-(defun lispy-meow-change ()
+(defun lispy-cat-change ()
   "Kill current selection and switch to LISPY state.
 
 This command supports `meow-selection-command-fallback'."
   (interactive)
   (when (meow--allow-modify-p)
-    (setq this-command #'lispy-meow-change)
+    (setq this-command #'lispy-cat-change)
     (meow--with-selection-fallback
      (meow--delete-region (region-beginning) (region-end))
      (meow--switch-state 'lispy)
      (when meow-select-on-change
        (setq-local meow--insert-pos (point))))))
 
-(defun lispy-meow-change-char ()
+(defun lispy-cat-change-char ()
   "Delete current char and switch to LISPY state."
   (interactive)
   (when (< (point) (point-max))
@@ -171,10 +171,10 @@ This command supports `meow-selection-command-fallback'."
     (when meow-select-on-change
       (setq-local meow--insert-pos (point)))))
 
-(add-to-list 'meow-selection-command-fallback '(lispy-meow-change . lispy-meow-change-char))
+(add-to-list 'meow-selection-command-fallback '(lispy-cat-change . lispy-cat-change-char))
 
 ;;;###autoload
-(defun lispy-meow-open-above ()
+(defun lispy-cat-open-above ()
   "Open a newline above and switch to INSERT state."
   (interactive)
   (if meow--temp-normal
@@ -188,7 +188,7 @@ This command supports `meow-selection-command-fallback'."
     (indent-according-to-mode)))
 
 ;;;###autoload
-(defun lispy-meow-open-below ()
+(defun lispy-cat-open-below ()
   "Open a newline below and switch to INSERT state."
   (interactive)
   (if meow--temp-normal
@@ -230,7 +230,7 @@ This command supports `meow-selection-command-fallback'."
                 )))
 
 ;; Teach meow-insert-exit to exit out of LISPY
-;; The function does not test for the above defined lispy-meow-mode
+;; The function does not test for the above defined lispy-cat-mode
 ;; (note the order of "lispy" and "meow")
 ;; but instead is defined by the meow-define-state macro.
 (advice-add 'meow-insert-mode-p
@@ -239,7 +239,7 @@ This command supports `meow-selection-command-fallback'."
 
 ;;; State Indicator
 
-(defface lispy-meow-indicator
+(defface lispy-cat-indicator
   '((((class color) (background dark))
      ())
     (((class color) (background light))
@@ -247,7 +247,7 @@ This command supports `meow-selection-command-fallback'."
   "Lispy state indicator."
   :group 'meow)
 
-(add-to-list 'meow-indicator-face-alist `(lispy . lispy-meow-indicator))
+(add-to-list 'meow-indicator-face-alist `(lispy . lispy-cat-indicator))
 
 (add-to-list 'meow-replace-state-name-list '(lispy . "LISPY"))
 
@@ -256,7 +256,7 @@ This command supports `meow-selection-command-fallback'."
 
 ;; Region aware kill (that still respects `lispy-safe-delete')
 
-(defun lispy-meow--maybe-safe-kill-region (beg end)
+(defun lispy-cat--maybe-safe-kill-region (beg end)
   "Kill the region from BEG to END.
 If `lispy-safe-delete' is non-nil, exclude unmatched delimiters.
 Like `lispy--maybe-safe-delete-region' but modifies kill ring."
@@ -266,7 +266,7 @@ Like `lispy--maybe-safe-delete-region' but modifies kill ring."
           (kill-region (car safe-region) (cdr safe-region))))
     (kill-region beg end)))
 
-(defun lispy-meow-kill-dwim ()
+(defun lispy-cat-kill-dwim ()
   "Kill region or line, keeping parens consistent."
   (interactive)
   (let (bnd)
@@ -281,7 +281,7 @@ Like `lispy--maybe-safe-delete-region' but modifies kill ring."
 
      ;; In active region kill region
      ((region-active-p)
-      (lispy-meow--maybe-safe-kill-region
+      (lispy-cat--maybe-safe-kill-region
        (region-beginning) (region-end)))
 
      ;; In string kill until eos or eol
@@ -340,24 +340,24 @@ Like `lispy--maybe-safe-delete-region' but modifies kill ring."
 
 ;;; Cursor
 
-(defcustom lispy-meow-cursor-type-default meow-cursor-type-insert
+(defcustom lispy-cat-cursor-type-default meow-cursor-type-insert
   "Default cursor type in LISPY state, when lispy state is not special."
   :type '(choice
           (choice (hollow bar box))
           (cons (const bar) natnum))
-  :group 'lispy-meow)
+  :group 'lispy-cat)
 
-(defcustom lispy-meow-cursor-type-special 'hollow
+(defcustom lispy-cat-cursor-type-special 'hollow
   "Cursor type in LISPY state when region is special."
   :type '(choice
           (choice (hollow bar box))
           (cons (const bar) natnum))
-  :group 'lispy-meow)
+  :group 'lispy-cat)
 
 ;; Defined by state
-(setq meow-cursor-type-lispy lispy-meow-cursor-type-default)
+(setq meow-cursor-type-lispy lispy-cat-cursor-type-default)
 
-(defun lispy-meow--special-state-p ()
+(defun lispy-cat--special-state-p ()
   "Return t if lispy is in special state.
 The condition is from `lispy--insert-or-call'."
   (or (lispy-left-p)
@@ -366,35 +366,35 @@ The condition is from `lispy--insert-or-call'."
            (or (looking-at lispy-outline-header)
                (looking-at lispy-outline)))))
 
-(defvar-local lispy-meow--dynamic-cursor-last-pt nil
+(defvar-local lispy-cat--dynamic-cursor-last-pt nil
   "Caches last known point in the current (possibly indirect) buffer.
 See `(elisp) Indirect Buffers'.
-This allows running `lispy-meow--cursor-update' only when needed.")
+This allows running `lispy-cat--cursor-update' only when needed.")
 
-(defun lispy-meow--cursor-update ()
+(defun lispy-cat--cursor-update ()
   "Update the cursor based on whether lispy is in special state."
-  (unless (eq (point) lispy-meow--dynamic-cursor-last-pt)
-    (setq lispy-meow--dynamic-cursor-last-pt (point)
+  (unless (eq (point) lispy-cat--dynamic-cursor-last-pt)
+    (setq lispy-cat--dynamic-cursor-last-pt (point)
           meow-cursor-type-lispy
-          (if (lispy-meow--special-state-p)
-              lispy-meow-cursor-type-special
-            lispy-meow-cursor-type-default))
+          (if (lispy-cat--special-state-p)
+              lispy-cat-cursor-type-special
+            lispy-cat-cursor-type-default))
     (meow--update-cursor)))
 
-(define-minor-mode lispy-meow--dynamic-cursor-mode
+(define-minor-mode lispy-cat--dynamic-cursor-mode
   "A minor mode that changes the cursor in lispy's special state."
   :global nil
-  (if lispy-meow--dynamic-cursor-mode
+  (if lispy-cat--dynamic-cursor-mode
       ;; TODO can we use a less performance sensitive hook here only run after point changes?
       ;; In that case the above caching of point would not be necessary anymore.
-      (add-hook 'post-command-hook #'lispy-meow--cursor-update nil t)
-    (remove-hook 'post-command-hook #'lispy-meow--cursor-update t)))
+      (add-hook 'post-command-hook #'lispy-cat--cursor-update nil t)
+    (remove-hook 'post-command-hook #'lispy-cat--cursor-update t)))
 
 (add-hook 'lispy-mode-hook
-          (defun lispy-meow--toggle-dynamic-cursor-mode ()
+          (defun lispy-cat--toggle-dynamic-cursor-mode ()
             "Toggle cursor updates for lispy states (default, special)"
-            (lispy-meow--dynamic-cursor-mode 'toggle)))
+            (lispy-cat--dynamic-cursor-mode 'toggle)))
 
 
-(provide 'lispy-meow)
-;;; lispy-meow.el ends here
+(provide 'lispy-cat)
+;;; lispy-cat.el ends here
