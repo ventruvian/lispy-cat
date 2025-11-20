@@ -53,6 +53,7 @@ I.e. (lispy-cat-cmd-name \\='meow-insert) => lispy-cat-insert"
 
 ;; Meow doesn't unset meow--beacon-insert-enter-key after it no longer needs it
 ;; But we switch on it to determine whether we are recording or not
+;; PR: https://github.com/meow-edit/meow/pull/774
 (advice-add 'meow--beacon-apply-command
             :after
             (lambda (&rest _)
