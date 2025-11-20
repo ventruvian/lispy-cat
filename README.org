@@ -28,6 +28,11 @@ It's not your fault
 In ~LISPY~ state ~lispy-mode~ is active, so you can configure ~lispy-mode-map~
 as exepected. There are some features [[#selection-preservation][to be aware of]] however.
 
+/Disclaimer: This has just been packaged from an old config that I haven't used/
+/in a while. First testing indicated everything still works, but I can't make/
+/guarantees. I also just learned about [[https://github.com/meow-edit/meow/blob/master/meow-shims.el][meow-shims.el]], this code could probably
+be adapted to be included there if so desired./
+
 * Features
 :PROPERTIES:
 :CUSTOM_ID: features
@@ -55,7 +60,7 @@ instead. Some configuration is provided when you want to drop into regular
 :END:
 
 ~Meow~ cancells the selection whenever you enter ~INSERT~ state. When entering
-~LISPY~ state however any active selection is *preserved*, by default. If you want
+~LISPY~ state however any active selection is *preserved* by default. If you want
 to switch back to ~meow~'s regular behaviour unset
 ~lispy-cat-preserve-selection-on-entry-p~.
 
