@@ -1,0 +1,208 @@
+#+TITLE: Lispy Cat
+#+AUTHOR: Vincent Trötschel
+#+DATE: <2025-11-19 Wed>
+#+EMAIL: vincent.troetschel@mailbox.org
+#+OPTIONS: toc:2 h:2
+
+
+A simple layer to integrate [[https://github.com/enzuru/lispy][lispy]] into [[https://github.com/meow-edit/meow][meow]] by replacing the ~INSERT~ state with a
+custom ~LISPY~ state in buffers where ~lispy-cat-mode~ is active. Previously this
+mode was called ~lispy-meow-mode~ but this is would make it too prone to confusion
+with ~meow-lispy-mode~ which is the name that the ~meow-define-state~ macro
+generates for a state named ~LISPY~.
+
+#+begin_quote
+🎶
+
+Lispy Cat, Lispy Cat
+
+What are they feeding you?
+
+Lispy Cat, Lispy Cat
+
+It's not your fault
+
+🎵
+#+end_quote
+
+In ~LISPY~ state ~lispy-mode~ is active, so you can configure ~lispy-mode-map~
+as exepected. There are some features [[#selection-preservation][to be aware of]] however.
+
+* Features
+:PROPERTIES:
+:CUSTOM_ID: features
+:END:
+
+** New Meow State: Lispy
+
+The core functionality of ~lispy-cat~ is to automatically switch to ~lispy-mode~
+when entering insertion state within a major mode that has. This is achieved by
+advising core Meow insertion functions to call their ~lispy-cat~ counterparts
+instead. Some configuration is provided when you want to drop into regular
+~INSERT~ instead of ~LISPY~.
+
+- meow-insert, meow-append, meow-change :: These are always adviced to drop you
+  into ~LISPY~, disable ~lispy-cat-mode~ if you don't want to use ~lispy-mode~.
+- meow-open-* :: If ~lispy-cat-open-cmds-prefer-lispy-p~ is non-nil (default: ~t~)
+  these function will enter ~LISPY~ state when opening new lines.
+- meow-beacon-* :: If ~lispy-cat-beacon-prefer-lispy-p~ (default: ~nil~) is non-nil
+  these function will enter ~LISPY~ state. _Note_: This is almost never what you
+  want to use, the virtual cursors produced by ~BEACON~ are unpredictable.
+
+** Selection Preservation
+:PROPERTIES:
+:CUSTOM_ID: selection-preservation
+:END:
+
+~Meow~ cancells the selection whenever you enter ~INSERT~ state. When entering
+~LISPY~ state however any active selection is *preserved*, by default. If you want
+to switch back to ~meow~'s regular behaviour unset
+~lispy-cat-preserve-selection-on-entry-p~.
+
+*Why this default?*
+~Meow~ users often use selections for moving point, hence selections are created
+without the intend to operate on them. Therefore it makes sense to cancel the
+active selection when entering ~INSERT~.
+
+However ~lispy~ is built around moving point without selections and they are
+created with the intent to be acted upon. On the other hand lispy makes it hard
+to enter ~lispy~'s “special-mode” from within a list. This requires bouncing
+back from the nearest parens, meaning one has to navigate to parens (via
+~lispy-backward~, ~lispy-forward~, ~lispy-mark~) and then select the item (via
+~special-lispy-ace-symbol~ or worse =N M-m=). But creating a selection will
+enter “special-mode”.
+
+Meow offers a excellent selection-making variety, that can be leveraged to mark
+a selection to be acted upon. So the intention behind the preservation of the
+selection is to enable a workflow for when point is within a list:
+
+1. Create a selection in ~NORMAL~
+2. Switch to ~LISPY~
+3. Immediately have ~special-lispy-*~ commands at your disposal.
+
+** Dynamic Cursor Appearance
+
+When ~lispy-mode~ is active, this package dynamically
+updates the Meow cursor appearance in ~LISPY~ state:
+
+- During normal insertion the cursor looks the same as in regular ~INSERT~
+  (configure via ~lispy-cat-cursor-type-default~)
+- It switches to a ~hollow~ cursor style when Lispy detects it is operating on a
+  structural boundary (e.g., inside a list or right next to a delimiter) . This
+  provides visual feedack when ~special-lispy-*~ commands are active
+  (configure via ~lispy-cat-cursor-type-special~).
+
+** Lispy Kill DWIM
+
+Lispy has ~lispy-kill~ (=C-k=) that doesn't respect the active region and
+~lispy-delete~ (=C-d=) that does, but that doesn't update the kill-ring. This
+package includes a command that does both.
+
+
+* Customization
+
+The following user options control the behavior of ~lispy-cat~:
+
+| Variable                                | Default | Description                                                                   |
+|-----------------------------------------+---------+-------------------------------------------------------------------------------|
+| ~lispy-cat-open-cmds-prefer-lispy-p~      | ~t~       | If non-nil, enter ~LISPY~ when opening a newline                                |
+| ~lispy-cat-beacon-prefer-lispy-p~         | ~nil~     | If non-nil, enter ~LISPY~ when in ~BEACON~ state (cursor behaviour unpredictable) |
+| ~lispy-cat-preserve-selection-on-entry-p~ | ~t~       | If non-nil, the selection remains active when entering ~LISPY~ state            |
+
+-----
+* Requirements
+
+- Emacs 29.1 or later
+- lispy
+- meow
+
+* Installation
+:PROPERTIES:
+:CUSTOM_ID: installation
+:END:
+
+The package is available at [[https://github.com/VitruvianVice/lispy-cat][github.com/ventruvian/lispy-cat]]. For the
+installation and configuration of ~lispy~ see [[https://github.com/enzuru/lispy][github.com/enzuru/lispy]].
+~lispy-cat~ will src_elisp{(require 'lispy)}, no need to load it manually.
+
+** Doom Emacs
+
+Add to your ~packages.el~:
+
+#+begin_src emacs-lisp
+(package! lispy :recipe (:host github :repo "enzuru/lispy"))
+(package! lispy-cat :recipe (:host github :repo "ventruvian/lispy-cat"))
+#+end_src
+
+Configure in you ~config.el~ / ~config.org~:
+
+#+begin_src emacs-lisp
+(use-package! lispy
+  :config <<your-lispy-keybindings>>)
+
+(use-package! lispy-cat
+  :hook
+  ;; Choose whichever modes you want lispy to be active in
+  ((inferior-lisp-mode
+    lisp-mode emacs-lisp-mode
+    scheme-mode racket-mode hy-mode
+    lfe-mode dune-mode clojure-mode
+    clojure-ts-mode fennel-mode
+    doom-sandbox-emacs-lisp-mode) . lispy-cat-mode)
+  :config
+  ;; Choose whatever keybinding fits your config or disregard this command entirely.
+  ;; Lispy still uses the old `define-key' so remapping is done with vector notation.
+  (lispy-define-key lispy-mode-map [remap lispy-kill] #'lispy-cat-kill-dwim))
+#+end_src
+
+** Elpaca
+
+#+begin_src emacs-lisp
+(use-package lispy
+  :ensure (:host github :repo "enzuru/lispy")
+  :config <<your-lispy-keybindings>>)
+
+(use-package lispy-cat
+  :ensure (:host github :repo "ventruvian/lispy-cat")
+  :hook
+  ;; Choose whichever modes you want lispy to be active in
+  ((inferior-lisp-mode
+    lisp-mode emacs-lisp-mode
+    scheme-mode racket-mode hy-mode
+    lfe-mode dune-mode clojure-mode
+    clojure-ts-mode fennel-mode) . lispy-cat-mode)
+  :config
+  ;; Choose whatever keybinding fits your config or disregard this command entirely.
+  ;; Lispy still uses the old `define-key' so remapping is done with vector notation.
+  (lispy-define-key lispy-mode-map [remap lispy-kill] #'lispy-cat-kill-dwim))
+#+end_src
+
+** straight.el
+
+#+begin_src emacs-lisp
+(use-package lispy
+  :straight (:host github :repo "enzuru/lispy")
+  :config <<your-lispy-keybindings>>)
+
+(use-package lispy-cat
+  :straight (:host github :repo "ventruvian/lispy-cat")
+  :hook
+  ;; Choose whichever modes you want lispy to be active in
+  ((inferior-lisp-mode
+    lisp-mode emacs-lisp-mode
+    scheme-mode racket-mode hy-mode
+    lfe-mode dune-mode clojure-mode
+    clojure-ts-mode fennel-mode) . lispy-cat-mode)
+  :config
+  ;; Choose whatever keybinding fits your config or disregard this command entirely.
+  ;; Lispy still uses the old `define-key' so remapping is done with vector notation.
+  (lispy-define-key lispy-mode-map [remap lispy-kill] #'lispy-cat-kill-dwim))
+#+end_src
+* Contributions
+
+Contributions welcome! Feel free to check the [[https://github.com/ventruvian/lispy-cat/issues][issues page]] or submit a [[https://github.com/ventruvian/lispy-cat/pulls][pull
+requests]].
+
+* License
+
+This package is licensed under GPLv3. See [[file:LICENCE][LICENCE]] for details.
