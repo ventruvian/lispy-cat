@@ -203,6 +203,47 @@ Configure in you ~config.el~ / ~config.org~:
   ;; Lispy still uses the old `define-key' so remapping is done with vector notation.
   (lispy-define-key lispy-mode-map [remap lispy-kill] #'lispy-cat-kill-dwim))
 #+end_src
+
+* Doom-Modeline Indicator
+
+ [[https://github.com/seagle0128/doom-modeline][doom-modeline]] knows already about ~meow~'s other states and to the best of my
+ knowledge you can't simply update an existing modeline-segment. Maybe you could
+ define your own segment, duplicate all the code and use
+ ~define-modeline-def-modeline~ without the old segment and with the new one, but
+ [[https://github.com/ventruvian/doom-modeline][forking the repo]] sounds like less of a hassle. For reference and to have all the necessary
+ changes in one place, this is the advice you'd need if ~doom-modeline--meow~ were
+ a function not a ~defsubst~:
+
+#+begin_src emacs-lisp
+(defface doom-modeline-meow-lispy-state
+  '((t (:inherit doom-modeline-evil-replace-state)))
+  "Face for the insert state in meow-edit indicator."
+  :group 'doom-modeline-faces)
+
+(advice-add 'doom-modeline--meow
+            :before-until
+            (defun i.lispy/doom-modeline--meow ()
+              (when (and (bound-and-true-p meow-mode)
+                         (meow-lispy-mode-p))
+                (doom-modeline--modal-icon
+                 (substring-no-properties meow--indicator)
+                 'doom-modeline-meow-lispy-state
+                 (symbol-name (meow--current-state))
+                 "nf-md-alpha_l_circle"
+                 "🅛"))))
+#+end_src
+
+You can also use my fork of the modeline with these changes included if you so
+wish. From doom-emacs (add to ~packages.el~ and run ~doom upgrade~):
+
+#+begin_src emacs-lisp
+(package! doom-modeline
+  :recipe (:host github
+           :repo "ventruvian/doom-modeline"
+           :branch "lispy-cat")
+  :pin nil)
+#+end_src
+
 * Contributions
 
 Contributions welcome! Feel free to check the [[https://github.com/ventruvian/lispy-cat/issues][issues page]] or submit a [[https://github.com/ventruvian/lispy-cat/pulls][pull
