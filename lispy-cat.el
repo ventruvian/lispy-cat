@@ -51,16 +51,29 @@ The resulting cursors may be unpredictable."
 I.e. (lispy-cat-cmd-name \\='meow-insert) => lispy-cat-insert"
   (concat "lispy-" (symbol-name meow-insert-fn)))
 
+;; Meow doesn't unset meow--beacon-insert-enter-key after it no longer needs it
+;; But we switch on it to determine whether we are recording or not
+(advice-add 'meow--beacon-apply-command
+            :after
+            (lambda (&rest _)
+              (setq-local meow--beacon-insert-enter-key nil)))
+
 (defun lispy-cat-activate-p ()
   "Whether or not LISPY should replace INSERT."
   (and (bound-and-true-p lispy-cat-mode)
-       (or lispy-cat-beacon-prefer-lispy-p
-           (not (memq this-command '(meow-beacon-insert
+       (or (and lispy-cat-open-cmds-prefer-lispy-p
+                (memq this-command '(meow-open-above
+                                     meow-open-below)))
+           (and lispy-cat-beacon-prefer-lispy-p
+                (memq this-command '(meow-beacon-insert
                                      meow-beacon-append
-                                     meow-beacon-change))))
-       (or lispy-cat-open-cmds-prefer-lispy-p
-           (not (memq this-command '(meow-open-above
-                                     meow-open-below))))))
+                                     meow-beacon-change)))
+           ;; TODO Does another indicator exist whether we are recording
+           ;; than meow--beacon-insert-enter-key?
+           (and (not meow--beacon-insert-enter-key)
+                (memq this-command '(meow-insert
+                                     meow-append
+                                     meow-change))))))
 
 (defmacro lispy-cat-make-advice-maybe-lispy (meow-insert-fn)
   "Return advice function to advice MEOW-INSERT-FN with."
